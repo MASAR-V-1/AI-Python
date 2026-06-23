@@ -6,109 +6,75 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-st.image("logo.png", width=100)
-
+# 1. تهيئة الصفحة (يجب أن يكون أول أمر تفاعلي)
 st.set_page_config(page_title="MASAR Chatbot", page_icon="🤖")
+
+# 2. عرض الشعار والعناوين
+st.image("logo.png", width=100)
 st.title("MASAR's AI Agent 🤖")
 
-
+# 3. دعم اتجاه القراءة العربي والألوان للثيمين
 st.markdown("""
     <style>
-        /* إعدادات عامة لاتجاه النص العربي */
-        .main .block-container {
-            direction: rtl;
-            text-align: right;
-        }
-        .stChatInputContainer {
-            direction: rtl;
-        }
-        
-        /* 1. تنسيق الألوان في حالة الثيم الفاتح (Light Mode) */
-        @media (prefers-color-scheme: light) {
-            h1, h2 {
-                color: #2563eb !important; /* الأزرق الحيوي */
-            }
-            .stSpinner {
-                color: #0d9488 !important; /* الأخضر البترولي */
-            }
-        }
-        
-        /* 2. تنسيق الألوان في حالة الثيم الداكن (Dark Mode) */
-        @media (prefers-color-scheme: dark) {
-            h1, h2 {
-                color: #60a5fa !important; /* درجة أزرق أفتح ومريحة للعين في الظلام */
-            }
-            .stSpinner {
-                color: #2dd4bf !important; /* درجة فيروزي مضيئة تناسب الخلفية الداكنة */
-            }
-        }
+        .main .block-container { direction: rtl; text-align: right; }
+        .stChatInputContainer { direction: rtl; }
+        @media (prefers-color-scheme: light) { h1, h2 { color: #2563eb !important; } .stSpinner { color: #0d9488 !important; } }
+        @media (prefers-color-scheme: dark) { h1, h2 { color: #60a5fa !important; } .stSpinner { color: #2dd4bf !important; } }
     </style>
 """, unsafe_allow_html=True)
 
+# 4. تثبيت العميل بالكاش
+@st.cache_resource
+def get_genai_client():
+    return genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
+client = get_genai_client()
 
-
+# 5. إدارة الرسائل المرئية
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "client" not in st.session_state:
-    st.session_state.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-if "chat" not in st.session_state:
-
-    system_prompt =  """
-أنت مساعد ذكي متخصص في إدارة المؤسسات والعمل الإنساني وإعداد التقارير (MASAR).
-
-مهمتك الأساسية هي مساعدة المؤسسات والجمعيات الخيرية والمنظمات الإنسانية في:
-- إنشاء التقارير الإدارية والتقارير الخاصة بالمهام والمشاريع.
-- تلخيص إنجازات الفرق والموظفين والمتطوعين.
-- تنظيم ومتابعة الـ Tasks والأنشطة والمبادرات.
-- تحليل أداء المشاريع والخدمات المقدمة للمستفيدين.
-- إعداد تقارير احترافية للإدارة وصناع القرار.
-- اقتراح طرق لتحسين إدارة العمليات داخل المؤسسة.
-
-يجب أن تكون إجاباتك مرتبطة فقط بالمؤسسات، الإدارة، المشاريع، العمل الإنساني، المتطوعين، المستفيدين، والتقارير.
-
-إذا طلب المستخدم إنشاء تقرير، اسأله عن المعلومات الأساسية مثل:
-- اسم المؤسسة أو المشروع.
-- الفترة الزمنية للتقرير.
-- المهام أو الأنشطة المنجزة.
-- التحديات والمشاكل.
-- النتائج أو المخرجات.
-- التوصيات.
-
-قم بإخراج التقارير بطريقة منظمة واحترافية تشمل عند الحاجة:
-- مقدمة.
-- ملخص تنفيذي.
-- الإنجازات.
-- المهام المنفذة.
-- مؤشرات الأداء.
-- التحديات.
-- التوصيات.
-- الخطوات القادمة.
-
-إذا كان سؤال المستخدم خارج نطاق المؤسسات أو الإدارة أو العمل الإنساني، اعتذر بلطف ووضح أنك متخصص فقط في هذا المجال.
-"""
-    
-  
-    st.session_state.chat = st.session_state.client.chats.create(
-        model="gemini-2.5-flash",
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=0.7
-        )
-    )
-
+# 6. استقبال المدخلات وتوليد الاستجابة بموديل مستقر
 if user_input := st.chat_input("Ask me for anything..."):
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
-
+        
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
+        with st.spinner("جاري التفكير..."):
             try:
-                response = st.session_state.chat.send_message(user_input)
+                system_prompt = """
+                أنت مساعد ذكي متخصص في إدارة المؤسسات والعمل الإنساني وإعداد التقارير (MASAR).
+                مهمتك الأساسية هي مساعدة المؤسسات والجمعيات الخيرية والمنظمات الإنسانية في إعداد التقارير الإدارية وتلخيص الإنجازات.
+                يرجى الإجابة باختصار وإيجاز باللغة العربية (لا تتجاوز سطرين أو ثلاثة).
+                """
+                
+                # تم التبديل إلى موديل 1.5 الفلاش المستقر وأوسع الحصص لكسر الـ 429 نهائياً
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=user_input,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        temperature=0.7
+                    )
+                )
+                
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
             except Exception as e:
-                st.error(f"Error {e}")
+                error_msg = str(e)
+                # اصطياد خطأ الحصّة 429
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    st.warning("⚠️ الحصة الحالية ممتلئة. يرجى الانتظار ثوانٍ وسيقوم خادم مَسَار بتصفير العداد تلقائياً.")
+                
+                # اصطياد خطأ الضغط على السيرفر 503 (الجديد)
+                elif "503" in error_msg or "UNAVAILABLE" in error_msg:
+                    st.info("🔄 سيرفرات جوجل مضغوطة حالياً.. يرجى إعادة إرسال سؤالك الآن وسيعمل مباشرة.")
+                
+                else:
+                    st.error(f"حدث خطأ أثناء الاتصال: {error_msg}")
