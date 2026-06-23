@@ -6,14 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 1. تهيئة الصفحة (يجب أن يكون أول أمر تفاعلي)
+
 st.set_page_config(page_title="MASAR Chatbot", page_icon="🤖")
 
-# 2. عرض الشعار والعناوين
+
 st.image("logo.png", width=100)
 st.title("MASAR's AI Agent 🤖")
 
-# 3. دعم اتجاه القراءة العربي والألوان للثيمين
+
 st.markdown("""
     <style>
         .main .block-container { direction: rtl; text-align: right; }
@@ -23,14 +23,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 4. تثبيت العميل بالكاش
+#  تثبيت العميل بالكاش
 @st.cache_resource
 def get_genai_client():
     return genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 client = get_genai_client()
 
-# 5. إدارة الرسائل المرئية
+#  إدارة الرسائل المرئية
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -38,7 +38,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 6. استقبال المدخلات وتوليد الاستجابة بموديل مستقر
+#  استقبال المدخلات وتوليد الاستجابة بموديل مستقر
 if user_input := st.chat_input("Ask me for anything..."):
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
@@ -53,7 +53,6 @@ if user_input := st.chat_input("Ask me for anything..."):
                 يرجى الإجابة باختصار وإيجاز باللغة العربية (لا تتجاوز سطرين أو ثلاثة).
                 """
                 
-                # تم التبديل إلى موديل 1.5 الفلاش المستقر وأوسع الحصص لكسر الـ 429 نهائياً
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=user_input,
