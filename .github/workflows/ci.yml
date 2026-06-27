@@ -29,5 +29,4 @@ jobs:
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        # التأكد من تشغيل التست عبر نفس البيئة المثبت عليها الحزم
         python manage.py test
