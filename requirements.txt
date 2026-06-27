@@ -85,7 +85,7 @@ nbdime==4.0.4
 nbformat==5.10.4
 nest-asyncio2==1.7.2
 notebook_shim==0.2.4
-numpy==2.5.0
+numpy
 openai==2.43.0
 orjson==3.11.9
 ormsgpack==1.12.2
