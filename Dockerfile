@@ -1,25 +1,25 @@
-# 1. تحديد النسخة الأساسية من بايثون (تكون خفيفة وسريعة)
+# python version
 FROM python:3.11-slim
 
-# 2. منع بايثون من كتابة ملفات pyc إلى القرص (للحفاظ على الخفة)
+# prevents Python from writing .pyc files to disc
 ENV PYTHONDONTWRITEBYTECODE 1
-# 3. منع بايثون من تخزين الـ output في الـ buffer لكي تظهر الأخطاء فوراً في الـ Terminal
+# prevents Python from buffering stdout and stderr (to see logs in real time)
 ENV PYTHONUNBUFFERED 1
 
-# 4. تحديد مجلد العمل الداخلي داخل الحاوية
+# declare the working directory inside the container
 WORKDIR /app
 
-# 5. نسخ ملف قائمة المكتبات أولاً (للاستفادة من الـ cache في الدوكر لسرعة البناء)
+# copy the dependencies file to the working directory
 COPY requirements.txt /app/
 
-# 6. تثبيت مكتبات بايثون المذكورة في الملف
+# install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 7. نسخ باقي ملفات مشروع الجانقو بالكامل إلى داخل الحاوية
+# copy the current directory contents into the container at /app
 COPY . /app/
 
-# 8. تحديد البورت الافتراضي الذي سيعمل عليه الجانقو (مثلاً 8000)
-EXPOSE 8000
+#the port that the container will listen to
+EXPOSE 8000    
 
-# 9. الأمر النهائي لتشغيل سيرفر الجانقو عند تشغيل الحاوية
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#to run the server in development mode
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
